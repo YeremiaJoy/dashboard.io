@@ -18,9 +18,9 @@ function Search({ users }) {
 
   useEffect(() => {
     //set user to context so we can use the state globally for search, user dashboard, etc
-    //I put SSR to this route, to handle if someone goes direct to this route, before they visit default route "/" 
+    //I put SSR to this route, to handle if someone goes direct to this route, before they visit default route "/"
     setUsers(users);
-  }, []);
+  }, [users, setUsers]);
 
   return (
     <MainLayout

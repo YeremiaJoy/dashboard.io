@@ -9,7 +9,7 @@ function NotFound() {
       <NotFoundTitle>dashboard.io</NotFoundTitle>
       <NotFoundDesc>
         <h2>Oops, We couldn't find that page</h2>
-        <p>It seems the URL you’re looking for doesn’t exist.</p>
+        <p>It seems the URL you&apos;re looking for doesn&apos;t exist.</p>
         <div className="back-to-home" onClick={() => router.push("/")}>
           Back to Home
         </div>

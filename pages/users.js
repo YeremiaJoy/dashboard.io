@@ -19,7 +19,7 @@ function Users({ users }) {
   useEffect(() => {
     //set user to context so we can use the state globally for search, user dashboard, etc
     setUsers(users);
-  }, []);
+  }, [setUsers, users]);
 
   return (
     <MainLayout
