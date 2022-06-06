@@ -8,7 +8,7 @@ function NotFound() {
     <NotFoundContainer>
       <NotFoundTitle>dashboard.io</NotFoundTitle>
       <NotFoundDesc>
-        <h2>Oops, We couldn't find that page</h2>
+        <h2>Oops, We couldn&apos;t find that page</h2>
         <p>It seems the URL you&apos;re looking for doesn&apos;t exist.</p>
         <div className="back-to-home" onClick={() => router.push("/")}>
           Back to Home
