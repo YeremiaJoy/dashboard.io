@@ -82,7 +82,7 @@ export const UserDetailStyle = styled.div`
   top: 0;
   right: 0;
   width: 33.3%;
-  height: max-content;
+  height: 100vh;
   z-index: 100;
   background-color: #f6f6f9;
   padding: 16px;
@@ -122,7 +122,7 @@ export const UserDetailContent = styled.div`
   margin: 16px 0;
   padding: 16px 0;
   overflow-y: auto;
-  max-height: 505px;
+  height: 73%;
 `;
 
 export const UserDetailData = styled.div`

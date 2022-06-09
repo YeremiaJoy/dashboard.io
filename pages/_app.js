@@ -13,7 +13,7 @@ function MyApp({ Component, pageProps }) {
 
   useEffect(() => {
     const localData = localStorage.getItem("SIDEBAR");
-    setToggleSidebar(localData !== null && JSON.parse(localData) || true);
+    setToggleSidebar(localData !== null ? JSON.parse(localData) : true);
   }, []);
 
   return (

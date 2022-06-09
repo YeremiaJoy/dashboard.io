@@ -1,25 +1,11 @@
-import React, { useState } from "react";
-import {
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  TableContainer,
-} from "@chakra-ui/react";
-import {
-  DetailTable,
-  TableBodyItem,
-  TableDashboardContainer,
-  TableHeadContainer,
-  TableHeadItem,
-} from "../styles/tableDashboard";
+import React, { useState, createContext, forwardRef, useRef } from "react";
+import { DetailTable, TableDashboardContainer } from "../styles/tableDashboard";
 import {
   ChevronRightIcon,
   DragHandleIcon,
   SmallCloseIcon,
 } from "@chakra-ui/icons";
+import { FixedSizeGrid as Grid } from "react-window";
 
 //data dummy
 const usersDummy = [
@@ -94,65 +80,150 @@ const usersDummy = [
 function UsersDashboard({ users }) {
   const [value, setValue] = useState("");
   //get data for header
-  const TableContent = Object.keys(users[0]);
+  const tableContent = Object.keys(users[0]);
+  const tableCount = Object.keys(users).length;
+
+  const gridRef = useRef();
+
+  const StickyListContext = createContext();
+  StickyListContext.displayName = "StickyListContext";
+
+  const ItemWrapper = ({ data, columnIndex, rowIndex, style }) => {
+    const { ItemRenderer, stickyIndices } = data;
+    if (
+      stickyIndices &&
+      stickyIndices.includes(columnIndex) &&
+      stickyIndices.includes(rowIndex)
+    ) {
+      return null;
+    }
+    return (
+      <ItemRenderer
+        columnIndex={columnIndex}
+        rowIndex={rowIndex}
+        style={style}
+      />
+    );
+  };
+
+  const StickyRow = ({ style }) => (
+    <div className="sticky table" style={style}>
+      {tableContent.map((val, i) => {
+        return (
+          <div className="table-header table-value" key={i}>
+            {val}
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  const Row = ({ columnIndex, rowIndex, style }) => {
+    const header = tableContent[columnIndex];
+    const tableValue =
+      rowIndex > 0 && users[rowIndex - 1][tableContent[columnIndex]];
+    return (
+      <>
+        {rowIndex > 0 && (
+          <div
+            className={
+              header === "age" || header === "referral_id"
+                ? "left table"
+                : "table"
+            }
+            style={style}
+          >
+            <div className="table-value">
+              {tableValue}
+              {value === tableValue && (
+                <DetailTable show={value}>
+                  <div className="detail-table-value">{value}</div>
+                  <SmallCloseIcon onClick={() => setValue("")} />
+                </DetailTable>
+              )}
+              {/* https://react-window.vercel.app/#/examples/list/scroll-to-item => scroll to item react-window but not working */}
+              {tableValue.length > 14 && (
+                <ChevronRightIcon
+                  w={4}
+                  h={4}
+                  onClick={() => {
+                    setValue(tableValue);
+                    gridRef.current.scrollToItem({
+                      align: "start",
+                      columnIndex: columnIndex,
+                      rowIndex: rowIndex,
+                    });
+                  }}
+                />
+              )}
+            </div>
+          </div>
+        )}
+      </>
+    );
+  };
+
+  const innerElementType = forwardRef(({ children, ...rest }, ref) => (
+    <StickyListContext.Consumer>
+      {({ stickyIndices }) => (
+        <div ref={ref} {...rest}>
+          {stickyIndices.map((columnIndex) => (
+            <StickyRow
+              columnIndex={columnIndex}
+              key={columnIndex}
+              style={{
+                top: columnIndex * 35,
+                left: 0,
+                width: "100%",
+                height: 30,
+              }}
+            />
+          ))}
+
+          {children}
+        </div>
+      )}
+    </StickyListContext.Consumer>
+  ));
+
+  const StickyList = ({ children, stickyIndices, gridRef, ...rest }) => (
+    <StickyListContext.Provider
+      value={{ ItemRenderer: children, stickyIndices }}
+    >
+      <Grid
+        itemData={{ ItemRenderer: children, stickyIndices }}
+        {...rest}
+        ref={gridRef}
+      >
+        {ItemWrapper}
+      </Grid>
+    </StickyListContext.Provider>
+  );
 
   return (
     <TableDashboardContainer>
-      <TableContainer>
-        <div>
-          <div
-            style={{
-              position: "sticky",
-              top: 0,
-              zIndex: 5,
-            }}
-          >
-            <TableHeadContainer>
-              {/* get header from object key, so it will go dynamic if have any changes from backend */}
-              {TableContent.map((val, i) => {
-                return (
-                  <TableHeadItem key={i}>
-                    <div className="table-head-value">{val}</div>
-                    <DragHandleIcon />
-                  </TableHeadItem>
-                );
-              })}
-            </TableHeadContainer>
-          </div>
-          <div>
-            {/* Looping value of each header */}
-            {users.map((val) => {
-              return (
-                <TableHeadContainer key={val.id}>
-                  {TableContent.map((table, i) => {
-                    return (
-                      <TableBodyItem key={i}>
-                        <span>{val[table]}</span>
-                        {/* if value clicked same with val[table] then show it */}
-                        {value === val[table] && (
-                          <DetailTable show={value}>
-                            <div className="detail-table-value">{value}</div>
-                            <SmallCloseIcon onClick={() => setValue("")} />
-                          </DetailTable>
-                        )}
-                        <ChevronRightIcon
-                          w={4}
-                          h={4}
-                          onClick={() => {
-                            setValue(val[table]);
-                          }}
-                        />
-                      </TableBodyItem>
-                    );
-                  })}
-                </TableHeadContainer>
-              );
-            })}
-          </div>
-        </div>
-      </TableContainer>
+      <StickyList
+        className="table-container"
+        height={700}
+        innerElementType={innerElementType}
+        columnCount={tableContent.length}
+        columnWidth={150}
+        // +1 means => add 1 row for header
+        rowCount={tableCount + 1}
+        rowHeight={30}
+        //only render once rows for header
+        stickyIndices={[0]}
+        //width responsive will handle in classname table-container css
+        width={1000}
+        gridRef={gridRef}
+      >
+        {Row}
+      </StickyList>
     </TableDashboardContainer>
   );
 }
 
 export default UsersDashboard;
+
+//STICKY HEADER REFERENCE FROM codesandbox down below
+//https://codesandbox.io/s/0mk3qwpl4l?file=/src/index.js:521-524
